@@ -1,6 +1,6 @@
-# Hyperliquid Smart Order Router
+# Smart Order Router
 
-A comprehensive smart order routing system for decentralized exchange aggregation on the Hyperliquid ecosystem. This project automatically finds the best trading prices across multiple DEXs, optimizes for price execution, minimizes gas costs, and provides seamless user experience[1][2].
+A comprehensive smart order routing system for decentralized exchange aggregation on the Hyperliquid ecosystem. This project automatically finds the best trading prices across multiple DEXs, optimizes for price execution, minimizes gas costs, and provides seamless user experience.
 
 ## 🚀 Features
 
