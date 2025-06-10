@@ -2,7 +2,7 @@
 
 A comprehensive smart order routing system for decentralized exchange aggregation on the Hyperliquid ecosystem. This project automatically finds the best trading prices across multiple DEXs, optimizes for price execution, minimizes gas costs, and provides seamless user experience.
 
-## 🚀 Features
+##  Features
 
 ### Core Functionality
 - **Multi-Pool Route Splitting**: Split large trades across up to 7 different liquidity pools simultaneously
