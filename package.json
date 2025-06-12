@@ -1,0 +1,23 @@
+{
+  "name": "split-order-routing",
+  "version": "1.0.0",
+  "description": "A comprehensive smart order routing system for decentralized exchange aggregation on the Hyperliquid ecosystem. This project automatically finds the best trading prices across multiple DEXs, optimizes for price execution, minimizes gas costs, and provides seamless user experience.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docker:build": "docker build -t smart-order-router .",
+    "docker:test": "docker-compose run foundry forge test -vvv",
+    "docker:dev": "docker-compose up -d",
+    "docker:anvil": "docker-compose up anvil -d",
+    "docker:deploy": "docker-compose run deployer script/Deploy.s.sol --broadcast --rpc-url $RPC_URL",
+    "docker:clean": "docker-compose down -v && docker system prune -f"
+  },
+
+  "author": "Raj",
+  "license": "ISC"
+}

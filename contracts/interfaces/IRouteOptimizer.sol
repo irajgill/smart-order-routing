@@ -47,33 +47,28 @@ interface IRouteOptimizer {
         OptimizationParams memory params
     ) external view returns (OptimizedRoute memory optimized);
 
-    function calculateRouteScore(
-        RouteCandidate memory route,
-        OptimizationParams memory params
-    ) external pure returns (uint256 score);
+    function calculateRouteScore(RouteCandidate memory route, OptimizationParams memory params)
+        external
+        pure
+        returns (uint256 score);
 
-    function findOptimalSplits(
-        RouteCandidate[] memory routes,
-        uint256 totalAmount,
-        OptimizationParams memory params
-    ) external pure returns (uint256[] memory allocations);
+    function findOptimalSplits(RouteCandidate[] memory routes, uint256 totalAmount, OptimizationParams memory params)
+        external
+        pure
+        returns (uint256[] memory allocations);
 
-    function estimateGasSavings(
-        OptimizedRoute memory optimized,
-        RouteCandidate memory baseline
-    ) external pure returns (uint256 gasSavings, uint256 percentageSaved);
+    function estimateGasSavings(OptimizedRoute memory optimized, RouteCandidate memory baseline)
+        external
+        pure
+        returns (uint256 gasSavings, uint256 percentageSaved);
 
-    function validateRoute(
-        RouteCandidate memory route,
-        OptimizationParams memory params
-    ) external pure returns (bool isValid, string memory reason);
+    function validateRoute(RouteCandidate memory route, OptimizationParams memory params)
+        external
+        pure
+        returns (bool isValid, string memory reason);
 
-    function getOptimizationMetrics(
-        OptimizedRoute memory optimized,
-        RouteCandidate memory baseline
-    ) external pure returns (
-        uint256 priceImprovement,
-        uint256 gasSavings,
-        uint256 efficiencyScore
-    );
+    function getOptimizationMetrics(OptimizedRoute memory optimized, RouteCandidate memory baseline)
+        external
+        pure
+        returns (uint256 priceImprovement, uint256 gasSavings, uint256 efficiencyScore);
 }

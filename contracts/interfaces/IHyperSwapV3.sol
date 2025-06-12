@@ -40,17 +40,13 @@ interface IHyperSwapV3Router {
         uint256 amountInMaximum;
     }
 
-    function exactInputSingle(ExactInputSingleParams calldata params)
-        external payable returns (uint256 amountOut);
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 
-    function exactInput(ExactInputParams calldata params)
-        external payable returns (uint256 amountOut);
+    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
 
-    function exactOutputSingle(ExactOutputSingleParams calldata params)
-        external payable returns (uint256 amountIn);
+    function exactOutputSingle(ExactOutputSingleParams calldata params) external payable returns (uint256 amountIn);
 
-    function exactOutput(ExactOutputParams calldata params)
-        external payable returns (uint256 amountIn);
+    function exactOutput(ExactOutputParams calldata params) external payable returns (uint256 amountIn);
 }
 
 interface IHyperSwapV3Quoter {
@@ -62,8 +58,7 @@ interface IHyperSwapV3Quoter {
         uint160 sqrtPriceLimitX96
     ) external returns (uint256 amountOut);
 
-    function quoteExactInput(bytes memory path, uint256 amountIn)
-        external returns (uint256 amountOut);
+    function quoteExactInput(bytes memory path, uint256 amountIn) external returns (uint256 amountOut);
 
     function quoteExactOutputSingle(
         address tokenIn,
@@ -73,18 +68,13 @@ interface IHyperSwapV3Quoter {
         uint160 sqrtPriceLimitX96
     ) external returns (uint256 amountIn);
 
-    function quoteExactOutput(bytes memory path, uint256 amountOut)
-        external returns (uint256 amountIn);
+    function quoteExactOutput(bytes memory path, uint256 amountOut) external returns (uint256 amountIn);
 }
 
 interface IHyperSwapV3Factory {
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
     event PoolCreated(
-        address indexed token0,
-        address indexed token1,
-        uint24 indexed fee,
-        int24 tickSpacing,
-        address pool
+        address indexed token0, address indexed token1, uint24 indexed fee, int24 tickSpacing, address pool
     );
     event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing);
 
@@ -132,63 +122,69 @@ interface IHyperSwapV3Pool {
     function tickSpacing() external view returns (int24);
     function maxLiquidityPerTick() external view returns (uint128);
 
-    function slot0() external view returns (
-        uint160 sqrtPriceX96,
-        int24 tick,
-        uint16 observationIndex,
-        uint16 observationCardinality,
-        uint16 observationCardinalityNext,
-        uint8 feeProtocol,
-        bool unlocked
-    );
+    function slot0()
+        external
+        view
+        returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        );
 
     function feeGrowthGlobal0X128() external view returns (uint256);
     function feeGrowthGlobal1X128() external view returns (uint256);
     function protocolFees() external view returns (uint128 token0, uint128 token1);
     function liquidity() external view returns (uint128);
 
-    function ticks(int24 tick) external view returns (
-        uint128 liquidityGross,
-        int128 liquidityNet,
-        uint256 feeGrowthOutside0X128,
-        uint256 feeGrowthOutside1X128,
-        int56 tickCumulativeOutside,
-        uint160 secondsPerLiquidityOutsideX128,
-        uint32 secondsOutside,
-        bool initialized
-    );
+    function ticks(int24 tick)
+        external
+        view
+        returns (
+            uint128 liquidityGross,
+            int128 liquidityNet,
+            uint256 feeGrowthOutside0X128,
+            uint256 feeGrowthOutside1X128,
+            int56 tickCumulativeOutside,
+            uint160 secondsPerLiquidityOutsideX128,
+            uint32 secondsOutside,
+            bool initialized
+        );
 
     function tickBitmap(int16 wordPosition) external view returns (uint256);
-    function positions(bytes32 key) external view returns (
-        uint128 _liquidity,
-        uint256 feeGrowthInside0LastX128,
-        uint256 feeGrowthInside1LastX128,
-        uint128 tokensOwed0,
-        uint128 tokensOwed1
-    );
+    function positions(bytes32 key)
+        external
+        view
+        returns (
+            uint128 _liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        );
 
-    function observations(uint256 index) external view returns (
-        uint32 blockTimestamp,
-        int56 tickCumulative,
-        uint160 secondsPerLiquidityCumulativeX128,
-        bool initialized
-    );
+    function observations(uint256 index)
+        external
+        view
+        returns (
+            uint32 blockTimestamp,
+            int56 tickCumulative,
+            uint160 secondsPerLiquidityCumulativeX128,
+            bool initialized
+        );
 
     function initialize(uint160 sqrtPriceX96) external;
 
-    function mint(
-        address recipient,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 amount,
-        bytes calldata data
-    ) external returns (uint256 amount0, uint256 amount1);
+    function mint(address recipient, int24 tickLower, int24 tickUpper, uint128 amount, bytes calldata data)
+        external
+        returns (uint256 amount0, uint256 amount1);
 
-    function burn(
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 amount
-    ) external returns (uint256 amount0, uint256 amount1);
+    function burn(int24 tickLower, int24 tickUpper, uint128 amount)
+        external
+        returns (uint256 amount0, uint256 amount1);
 
     function swap(
         address recipient,
@@ -198,13 +194,7 @@ interface IHyperSwapV3Pool {
         bytes calldata data
     ) external returns (int256 amount0, int256 amount1);
 
-    function flash(
-        address recipient,
-        uint256 amount0,
-        uint256 amount1,
-        bytes calldata data
-    ) external;
+    function flash(address recipient, uint256 amount0, uint256 amount1, bytes calldata data) external;
 
     function increaseObservationCardinalityNext(uint16 observationCardinalityNext) external;
-    
 }

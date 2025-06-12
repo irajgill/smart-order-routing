@@ -11,7 +11,7 @@ contract HyperSwapV2AdapterTest is Test {
     MockERC20 public tokenA;
     MockERC20 public tokenB;
     MockDEXRouter public mockRouter;
-    
+
     address public user = address(0x1);
     uint256 constant SWAP_AMOUNT = 1000e18;
     uint256 constant INITIAL_BALANCE = 10000e18;
@@ -21,15 +21,15 @@ contract HyperSwapV2AdapterTest is Test {
         tokenA = new MockERC20("Token A", "TKNA", 18);
         tokenB = new MockERC20("Token B", "TKNB", 18);
         mockRouter = new MockDEXRouter();
-        
+
         // Deploy adapter with proper error handling
         try new HyperSwapV2Adapter(address(mockRouter)) returns (HyperSwapV2Adapter newAdapter) {
             adapter = newAdapter;
-            
+
             // Setup balances only if adapter was created successfully
             tokenA.mint(user, INITIAL_BALANCE);
             tokenB.mint(address(mockRouter), INITIAL_BALANCE);
-            
+
             // Setup approvals
             vm.startPrank(user);
             tokenA.approve(address(adapter), type(uint256).max);
@@ -39,7 +39,6 @@ contract HyperSwapV2AdapterTest is Test {
             adapter = HyperSwapV2Adapter(address(0));
             console.log("HyperSwapV2Adapter deployment failed - tests will handle gracefully");
         }
-        
     }
 
     function testGetQuote() public {
@@ -47,18 +46,15 @@ contract HyperSwapV2AdapterTest is Test {
             console.log("Skipping testGetQuote - adapter not deployed");
             return;
         }
-        
+
         address[] memory path = new address[](2);
         path[0] = address(tokenA);
         path[1] = address(tokenB);
         bytes memory swapData = abi.encode(path);
-        
-        try adapter.getQuote(
-            address(tokenA),
-            address(tokenB),
-            SWAP_AMOUNT,
-            swapData
-        ) returns (uint256 amountOut, uint256 gasEstimate) {
+
+        try adapter.getQuote(address(tokenA), address(tokenB), SWAP_AMOUNT, swapData) returns (
+            uint256 amountOut, uint256 gasEstimate
+        ) {
             assertGt(amountOut, 0, "Should return positive amount");
             assertGt(gasEstimate, 0, "Should return gas estimate");
         } catch {
@@ -71,7 +67,7 @@ contract HyperSwapV2AdapterTest is Test {
             console.log("Skipping testGetDEXName - adapter not deployed");
             return;
         }
-        
+
         string memory name = adapter.getDEXName();
         assertEq(name, "HyperSwap V2", "Should return correct DEX name");
     }
@@ -81,7 +77,7 @@ contract HyperSwapV2AdapterTest is Test {
             console.log("Skipping testGetSupportedFeeTiers - adapter not deployed");
             return;
         }
-        
+
         uint256[] memory fees = adapter.getSupportedFeeTiers();
         assertEq(fees.length, 1, "Should support 1 fee tier");
         assertEq(fees[0], 300, "Should support 0.3% fee");
@@ -92,16 +88,16 @@ contract HyperSwapV2AdapterTest is Test {
             console.log("Skipping testSwap - adapter not deployed");
             return;
         }
-        
+
         vm.startPrank(user);
-        
+
         address[] memory path = new address[](2);
         path[0] = address(tokenA);
         path[1] = address(tokenB);
         bytes memory swapData = abi.encode(path);
-        
+
         uint256 balanceBefore = tokenB.balanceOf(user);
-        
+
         try adapter.swap(
             address(tokenA),
             address(tokenB),
@@ -110,13 +106,13 @@ contract HyperSwapV2AdapterTest is Test {
             swapData
         ) returns (uint256 amountOut) {
             uint256 balanceAfter = tokenB.balanceOf(user);
-            
+
             assertGt(amountOut, 0, "Should receive tokens");
             assertEq(balanceAfter - balanceBefore, amountOut, "Balance should match output");
         } catch {
             console.log("Swap failed - acceptable in test environment");
         }
-        
+
         vm.stopPrank();
     }
 
@@ -125,7 +121,7 @@ contract HyperSwapV2AdapterTest is Test {
         assertNotEq(address(tokenA), address(0), "Token A should be deployed");
         assertNotEq(address(tokenB), address(0), "Token B should be deployed");
         assertNotEq(address(mockRouter), address(0), "Mock router should be deployed");
-        
+
         if (address(adapter) != address(0)) {
             console.log("HyperSwapV2Adapter successfully deployed and initialized");
         } else {

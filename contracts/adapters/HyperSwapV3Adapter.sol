@@ -25,11 +25,9 @@ interface IHyperSwapV3Router {
         uint256 amountOutMinimum;
     }
 
-    function exactInputSingle(ExactInputSingleParams calldata params)
-        external payable returns (uint256 amountOut);
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 
-    function exactInput(ExactInputParams calldata params)
-        external payable returns (uint256 amountOut);
+    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
 }
 
 interface IHyperSwapV3Quoter {
@@ -41,21 +39,23 @@ interface IHyperSwapV3Quoter {
         uint160 sqrtPriceLimitX96
     ) external returns (uint256 amountOut);
 
-    function quoteExactInput(bytes memory path, uint256 amountIn)
-        external returns (uint256 amountOut);
+    function quoteExactInput(bytes memory path, uint256 amountIn) external returns (uint256 amountOut);
 }
 
 interface IHyperSwapV3Pool {
     function liquidity() external view returns (uint128);
-    function slot0() external view returns (
-        uint160 sqrtPriceX96,
-        int24 tick,
-        uint16 observationIndex,
-        uint16 observationCardinality,
-        uint16 observationCardinalityNext,
-        uint8 feeProtocol,
-        bool unlocked
-    );
+    function slot0()
+        external
+        view
+        returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        );
 }
 
 interface IHyperSwapV3Factory {
@@ -64,13 +64,13 @@ interface IHyperSwapV3Factory {
 
 contract HyperSwapV3Adapter is IDEXAdapter {
     using SafeERC20 for IERC20;
-    
+
     IHyperSwapV3Router public immutable router;
     IHyperSwapV3Quoter public immutable quoter;
     IHyperSwapV3Factory public immutable factory;
-    
+
     uint24[] public supportedFees = [100, 500, 3000, 10000]; // 0.01%, 0.05%, 0.3%, 1%
-    
+
     constructor(address _router, address _quoter) {
         router = IHyperSwapV3Router(_router);
         quoter = IHyperSwapV3Quoter(_quoter);
@@ -78,15 +78,13 @@ contract HyperSwapV3Adapter is IDEXAdapter {
         factory = IHyperSwapV3Factory(_quoter); // Using quoter address as mock factory
     }
 
-    function swap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 minAmountOut,
-        bytes calldata swapData
-    ) external override returns (uint256 amountOut) {
+    function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut, bytes calldata swapData)
+        external
+        override
+        returns (uint256 amountOut)
+    {
         uint24 fee = 500; // Default 0.05%
-        
+
         if (swapData.length > 0) {
             if (swapData.length == 3) {
                 fee = abi.decode(swapData, (uint24));
@@ -113,12 +111,11 @@ contract HyperSwapV3Adapter is IDEXAdapter {
         return router.exactInputSingle(params);
     }
 
-    function getQuote(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        bytes calldata swapData
-    ) external override returns (uint256 amountOut, uint256 gasEstimate) {
+    function getQuote(address tokenIn, address tokenOut, uint256 amountIn, bytes calldata swapData)
+        external
+        override
+        returns (uint256 amountOut, uint256 gasEstimate)
+    {
         if (swapData.length > 3) {
             // Multi-hop path
             try quoter.quoteExactInput(swapData, amountIn) returns (uint256 output) {
@@ -149,7 +146,7 @@ contract HyperSwapV3Adapter is IDEXAdapter {
     function getDEXName() external pure override returns (string memory) {
         return "HyperSwap V3";
     }
-    
+
     function getSupportedFeeTiers() external view override returns (uint256[] memory) {
         uint256[] memory fees = new uint256[](supportedFees.length);
         for (uint256 i = 0; i < supportedFees.length; i++) {
@@ -179,17 +176,16 @@ contract HyperSwapV3Adapter is IDEXAdapter {
         return router.exactInput(params);
     }
 
-    function _findBestFeeTier(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn
-    ) internal returns (uint256 bestOutput, uint24 bestFee) {
+    function _findBestFeeTier(address tokenIn, address tokenOut, uint256 amountIn)
+        internal
+        returns (uint256 bestOutput, uint24 bestFee)
+    {
         bestOutput = 0;
         bestFee = 500;
 
         for (uint256 i = 0; i < supportedFees.length; i++) {
-            try quoter.quoteExactInputSingle(tokenIn, tokenOut, supportedFees[i], amountIn, 0) 
-            returns (uint256 output) {
+            try quoter.quoteExactInputSingle(tokenIn, tokenOut, supportedFees[i], amountIn, 0) returns (uint256 output)
+            {
                 if (output > bestOutput) {
                     bestOutput = output;
                     bestFee = supportedFees[i];
@@ -200,45 +196,43 @@ contract HyperSwapV3Adapter is IDEXAdapter {
         }
     }
 
-    function getPoolLiquidity(
-        address tokenA,
-        address /*tokenB*/,
-        uint24 fee
-    ) external view returns (uint128 liquidity) {
+    function getPoolLiquidity(address tokenA, address, /*tokenB*/ uint24 fee)
+        external
+        view
+        returns (uint128 liquidity)
+    {
         address pool = factory.getPool(tokenA, tokenA, fee);
         if (pool == address(0)) return 0;
-        
+
         return IHyperSwapV3Pool(pool).liquidity();
     }
 
-    function getPoolPrice(
-        address tokenA,
-        address /*tokenB*/,
-        uint24 fee
-    ) external view returns (uint160 sqrtPriceX96, int24 tick) {
+    function getPoolPrice(address tokenA, address, /*tokenB*/ uint24 fee)
+        external
+        view
+        returns (uint160 sqrtPriceX96, int24 tick)
+    {
         address pool = factory.getPool(tokenA, tokenA, fee);
         if (pool == address(0)) return (0, 0);
-        
+
         (sqrtPriceX96, tick,,,,,) = IHyperSwapV3Pool(pool).slot0();
     }
 
-    function calculateConcentratedLiquidityImpact(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint24 fee
-    ) external view returns (uint256 priceImpact) {
+    function calculateConcentratedLiquidityImpact(address tokenIn, address tokenOut, uint256 amountIn, uint24 fee)
+        external
+        view
+        returns (uint256 priceImpact)
+    {
         uint128 liquidity = this.getPoolLiquidity(tokenIn, tokenIn, fee);
         if (liquidity == 0) return 10000; // 100% impact
-        
+
         // Simplified calculation for concentrated liquidity impact
         uint256 liquidityRatio = (amountIn * 10000) / uint256(liquidity);
-        
+
         // Adjust for fee tier - lower fees typically have tighter ranges
         uint256 feeMultiplier = fee < 500 ? 150 : fee < 3000 ? 100 : 50;
         priceImpact = (liquidityRatio * feeMultiplier) / 100;
-        
+
         return priceImpact > 10000 ? 10000 : priceImpact;
     }
-    
 }

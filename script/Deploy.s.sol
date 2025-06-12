@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SORRouter} from "../contracts/core/SORRouter.sol";
-import {SORFactory} from "../contracts/core/SORFactory.sol";
-import {SORManager} from "../contracts/core/SORManager.sol";
-import {HyperSwapV2Adapter} from "../contracts/adapters/HyperSwapV2Adapter.sol";
-import {HyperSwapV3Adapter} from "../contracts/adapters/HyperSwapV3Adapter.sol";
-import {KittenSwapAdapter} from "../contracts/adapters/KittenSwapAdapter.sol";
-import {LaminarAdapter} from "../contracts/adapters/LaminarAdapter.sol";
-import {MockPriceOracle} from "../tests/contracts/mocks/MockPriceOracle.sol";
-import {MockDEXRouter} from "../tests/contracts/mocks/MockDEXRouter.sol";
-import {MockERC20} from "../tests/contracts/mocks/MockERC20.sol";
-
+import { Script, console } from "forge-std/Script.sol";
+import { SORRouter } from "../contracts/core/SORRouter.sol";
+import { SORFactory } from "../contracts/core/SORFactory.sol";
+import { SORManager } from "../contracts/core/SORManager.sol";
+import { HyperSwapV2Adapter } from "../contracts/adapters/HyperSwapV2Adapter.sol";
+import { HyperSwapV3Adapter } from "../contracts/adapters/HyperSwapV3Adapter.sol";
+import { KittenSwapAdapter } from "../contracts/adapters/KittenSwapAdapter.sol";
+import { LaminarAdapter } from "../contracts/adapters/LaminarAdapter.sol";
+import { MockPriceOracle } from "../tests/contracts/mocks/MockPriceOracle.sol";
+import { MockDEXRouter } from "../tests/contracts/mocks/MockDEXRouter.sol";
+import { MockERC20 } from "../tests/contracts/mocks/MockERC20.sol";
 
 contract DeployScript is Script {
     // Deployment configuration
@@ -32,7 +31,7 @@ contract DeployScript is Script {
     SORManager public sorManager;
     MockPriceOracle public priceOracle;
     MockDEXRouter public mockDEXRouter;
-    
+
     // Adapters
     HyperSwapV2Adapter public hyperSwapV2Adapter;
     HyperSwapV3Adapter public hyperSwapV3Adapter;
@@ -44,12 +43,12 @@ contract DeployScript is Script {
     MockERC20 public testTokenA;
     MockERC20 public testTokenB;
 
-    function setUp() public {}
+    function setUp() public { }
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
-        
+
         console.log("Deploying Hyperliquid Smart Order Router...");
         console.log("Deployer address:", deployer);
         console.log("Deployer balance:", deployer.balance);
@@ -83,7 +82,7 @@ contract DeployScript is Script {
 
         // 6. Deploy DEX Adapters
         console.log("Deploying DEX Adapters...");
-        
+
         hyperSwapV2Adapter = new HyperSwapV2Adapter(address(mockDEXRouter));
         console.log("HyperSwap V2 Adapter:", address(hyperSwapV2Adapter));
 
@@ -108,7 +107,7 @@ contract DeployScript is Script {
 
         // 8. Configure Router
         console.log("Configuring Router...");
-        
+
         // Add DEX adapters
         sorRouter.addDEXAdapter("hyperswap_v2", address(hyperSwapV2Adapter));
         sorRouter.addDEXAdapter("hyperswap_v3", address(hyperSwapV3Adapter));
@@ -125,7 +124,7 @@ contract DeployScript is Script {
 
         // 9. Configure Manager - Fix SORManager addDEXAdapter calls (add missing parameters)
         console.log("Configuring Manager...");
-        
+
         sorManager.addDEXAdapter("hyperswap_v2", address(hyperSwapV2Adapter), "1.0", deployer);
         sorManager.addDEXAdapter("hyperswap_v3", address(hyperSwapV3Adapter), "1.0", deployer);
         sorManager.addDEXAdapter("kittenswap_stable", address(kittenSwapStableAdapter), "1.0", deployer);

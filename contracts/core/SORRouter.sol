@@ -13,7 +13,6 @@ import "../libraries/RouteCalculator.sol";
 import "../libraries/GasOptimizer.sol";
 import "../libraries/SafetyChecks.sol";
 
-
 // Advanced Smart Order Router for Hyperliquid ecosystem
 // Aggregates liquidity across HyperSwap V2/V3, KittenSwap, and Laminar
 // Implements sophisticated routing algorithms for optimal price execution
@@ -33,14 +32,14 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     mapping(address => mapping(address => uint256)) public pairLiquidity;
     mapping(address => uint256) public tokenDecimals;
     mapping(bytes32 => bool) private executedSwaps;
-    
+
     address public priceOracle;
     address public feeCollector;
     address public routeOptimizer;
     uint256 public override platformFee = 30; // 0.3%
     uint256 public override maxSlippageBps = 500; // 5%
     bool public emergencyPaused = false;
-    
+
     uint256 public totalSwapsExecuted;
     uint256 public totalVolumeUSD;
     uint256 public totalGasSaved;
@@ -73,28 +72,23 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         _;
     }
 
-    constructor(
-        address _priceOracle,
-        address _feeCollector
-    ) {
+    constructor(address _priceOracle, address _feeCollector) {
         require(_priceOracle != address(0), "SOR: Invalid price oracle");
         require(_feeCollector != address(0), "SOR: Invalid fee collector");
-        
+
         priceOracle = _priceOracle;
         feeCollector = _feeCollector;
-        
+
         // Add HYPE token support by default
         _addSupportedToken(0x2222222222222222222222222222222222222222, 18);
     }
 
     //Execute optimal swap across multiple DEX protocols
     //Implements advanced routing with split execution and gas optimization
-    function executeOptimalSwap(
-        SwapParams calldata params
-    ) 
-        external 
-        payable 
-        nonReentrant 
+    function executeOptimalSwap(SwapParams calldata params)
+        external
+        payable
+        nonReentrant
         notPaused
         validDeadline(params.deadline)
         supportedToken(params.tokenIn)
@@ -103,24 +97,17 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         returns (uint256 amountOut)
     {
         // Generate unique swap ID to prevent replay attacks
-        bytes32 swapId = keccak256(abi.encodePacked(
-            msg.sender,
-            params.tokenIn,
-            params.tokenOut,
-            params.amountIn,
-            block.timestamp,
-            block.number
-        ));
+        bytes32 swapId = keccak256(
+            abi.encodePacked(
+                msg.sender, params.tokenIn, params.tokenOut, params.amountIn, block.timestamp, block.number
+            )
+        );
         require(!executedSwaps[swapId], "SOR: Swap already executed");
         executedSwaps[swapId] = true;
 
         // Validate swap parameters
         SafetyChecks.validateSwapParams(
-            params.tokenIn,
-            params.tokenOut,
-            params.amountIn,
-            params.minAmountOut,
-            params.deadline
+            params.tokenIn, params.tokenOut, params.amountIn, params.minAmountOut, params.deadline
         );
 
         uint256 gasStart = gasleft();
@@ -129,12 +116,8 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         IERC20(params.tokenIn).safeTransferFrom(msg.sender, address(this), params.amountIn);
 
         // Calculate optimal routes with advanced algorithms
-        SplitRoute[] memory routes = _calculateOptimalRoutes(
-            params.tokenIn,
-            params.tokenOut,
-            params.amountIn,
-            params.useGasOptimization
-        );
+        SplitRoute[] memory routes =
+            _calculateOptimalRoutes(params.tokenIn, params.tokenOut, params.amountIn, params.useGasOptimization);
 
         require(routes.length > 0, "SOR: No viable routes found");
 
@@ -143,11 +126,8 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < routes.length; i++) {
             totalExpectedOutput += routes[i].expectedOutput;
         }
-        
-        require(
-            SafetyChecks.validateSlippage(totalExpectedOutput, params.minAmountOut),
-            "SOR: Slippage too high"
-        );
+
+        require(SafetyChecks.validateSlippage(totalExpectedOutput, params.minAmountOut), "SOR: Slippage too high");
 
         // Execute split routes with error handling
         uint256 totalAmountOut = _executeSplitRoutes(routes);
@@ -170,19 +150,13 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         // Update statistics
         totalSwapsExecuted++;
         totalGasSaved += _calculateGasSavings(gasUsed, routes.length);
-        
+
         // Calculate USD volume (simplified)
         uint256 volumeUSD = _calculateVolumeUSD(params.tokenOut, userAmountOut);
         totalVolumeUSD += volumeUSD;
 
         emit SwapExecuted(
-            msg.sender,
-            params.tokenIn,
-            params.tokenOut,
-            params.amountIn,
-            userAmountOut,
-            gasUsed,
-            routes.length
+            msg.sender, params.tokenIn, params.tokenOut, params.amountIn, userAmountOut, gasUsed, routes.length
         );
 
         emit RouteOptimized(
@@ -196,27 +170,18 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return userAmountOut;
     }
 
-    
     //Get comprehensive swap quote with multiple route options
-    function getSwapQuote(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn
-    ) 
+    function getSwapQuote(address tokenIn, address tokenOut, uint256 amountIn)
         external
         supportedToken(tokenIn)
         supportedToken(tokenOut)
         validAmount(amountIn)
-        returns (
-            uint256 amountOut,
-            uint256 gasEstimate,
-            SplitRoute[] memory routes
-        ) 
+        returns (uint256 amountOut, uint256 gasEstimate, SplitRoute[] memory routes)
     {
         require(tokenIn != tokenOut, "SOR: Identical tokens");
-        
+
         routes = _calculateOptimalRoutes(tokenIn, tokenOut, amountIn, true);
-        
+
         for (uint256 i = 0; i < routes.length; i++) {
             amountOut += routes[i].expectedOutput;
             gasEstimate += routes[i].gasEstimate;
@@ -228,15 +193,13 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     }
 
     //Calculate optimal routes using advanced pathfinding algorithms
-    function _calculateOptimalRoutes(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        bool useGasOptimization
-    ) internal returns (SplitRoute[] memory) {
+    function _calculateOptimalRoutes(address tokenIn, address tokenOut, uint256 amountIn, bool useGasOptimization)
+        internal
+        returns (SplitRoute[] memory)
+    {
         // Get all available adapters
         string[] memory availableAdapters = _getAvailableAdapters();
-        
+
         if (availableAdapters.length == 0) {
             return new SplitRoute[](0);
         }
@@ -248,14 +211,9 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < availableAdapters.length && routeCount < MAX_SPLITS; i++) {
             address adapter = dexAdapters[availableAdapters[i]];
             if (adapter != address(0)) {
-                SplitRoute memory route = _getRouteFromAdapter(
-                    adapter, 
-                    tokenIn, 
-                    tokenOut, 
-                    amountIn,
-                    availableAdapters[i]
-                );
-                
+                SplitRoute memory route =
+                    _getRouteFromAdapter(adapter, tokenIn, tokenOut, amountIn, availableAdapters[i]);
+
                 if (route.steps.length > 0 && route.expectedOutput > 0) {
                     // Validate route viability
                     uint256 priceImpact = _calculatePriceImpact(tokenIn, tokenOut, amountIn, route.expectedOutput);
@@ -278,13 +236,13 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         uint256 amountIn,
         string memory dexName
     ) internal returns (SplitRoute memory) {
-        try IDEXAdapter(adapter).getQuote(tokenIn, tokenOut, amountIn, "") 
-        returns (uint256 amountOut, uint256 gasEstimate) {
-            
+        try IDEXAdapter(adapter).getQuote(tokenIn, tokenOut, amountIn, "") returns (
+            uint256 amountOut, uint256 gasEstimate
+        ) {
             if (amountOut == 0) {
                 return SplitRoute(new RouteStep[](0), 0, 0, 0);
             }
-            
+
             SplitRoute memory route;
             route.steps = new RouteStep[](1);
             route.steps[0] = RouteStep({
@@ -298,7 +256,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
             route.percentage = 10000; // 100%
             route.expectedOutput = amountOut;
             route.gasEstimate = gasEstimate;
-            
+
             return route;
         } catch {
             return SplitRoute(new RouteStep[](0), 0, 0, 0);
@@ -331,36 +289,30 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     //Execute a single route through specified steps
     function _executeRoute(SplitRoute memory route) internal returns (uint256 amountOut) {
         uint256 currentAmount = 0;
-        
+
         for (uint256 i = 0; i < route.steps.length; i++) {
             RouteStep memory step = route.steps[i];
-            
+
             if (i == 0) {
                 currentAmount = step.amountIn;
             }
 
             IDEXAdapter adapter = IDEXAdapter(step.dexAdapter);
-            
+
             // Approve tokens for adapter
             IERC20(step.tokenIn).safeApprove(step.dexAdapter, 0); // Reset approval
             IERC20(step.tokenIn).safeApprove(step.dexAdapter, currentAmount);
-            
+
             // Get balance before swap
             uint256 balanceBefore = IERC20(step.tokenOut).balanceOf(address(this));
-            
+
             // Execute swap
-            currentAmount = adapter.swap(
-                step.tokenIn,
-                step.tokenOut,
-                currentAmount,
-                step.minAmountOut,
-                step.swapData
-            );
-            
+            currentAmount = adapter.swap(step.tokenIn, step.tokenOut, currentAmount, step.minAmountOut, step.swapData);
+
             // Verify actual output
             uint256 balanceAfter = IERC20(step.tokenOut).balanceOf(address(this));
             uint256 actualOutput = balanceAfter - balanceBefore;
-            
+
             require(actualOutput >= step.minAmountOut, "SOR: Route step failed");
             currentAmount = actualOutput;
         }
@@ -378,7 +330,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         if (routeCount == 0) {
             return new SplitRoute[](0);
         }
-        
+
         if (routeCount == 1) {
             SplitRoute[] memory singleRoute = new SplitRoute[](1);
             singleRoute[0] = routes[0];
@@ -403,7 +355,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     ) internal view returns (SplitRoute[] memory) {
         // Convert to RouteCandidate format
         IRouteOptimizer.RouteCandidate[] memory candidates = new IRouteOptimizer.RouteCandidate[](routeCount);
-        
+
         for (uint256 i = 0; i < routeCount; i++) {
             candidates[i] = IRouteOptimizer.RouteCandidate({
                 path: new address[](2),
@@ -425,9 +377,8 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
             prioritizePrice: !useGasOptimization
         });
 
-        try IRouteOptimizer(routeOptimizer).optimizeRoute(
-            address(0), address(0), totalAmount, candidates, params
-        ) returns (IRouteOptimizer.OptimizedRoute memory optimized) {
+        try IRouteOptimizer(routeOptimizer).optimizeRoute(address(0), address(0), totalAmount, candidates, params)
+        returns (IRouteOptimizer.OptimizedRoute memory optimized) {
             return _convertOptimizedRoute(optimized, routes);
         } catch {
             return _simpleRouteOptimization(routes, routeCount, useGasOptimization);
@@ -435,11 +386,11 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     }
 
     // Simple route optimization fallback
-    function _simpleRouteOptimization(
-        SplitRoute[] memory routes,
-        uint256 routeCount,
-        bool useGasOptimization
-    ) internal pure returns (SplitRoute[] memory) {
+    function _simpleRouteOptimization(SplitRoute[] memory routes, uint256 routeCount, bool useGasOptimization)
+        internal
+        pure
+        returns (SplitRoute[] memory)
+    {
         SplitRoute[] memory optimizedRoutes = new SplitRoute[](routeCount);
         uint256 validRoutes = 0;
 
@@ -470,15 +421,14 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < validRoutes; i++) {
             if (totalScore > 0) {
                 uint256 percentage = (scores[i] * 10000) / totalScore;
-                
+
                 // Minimum 5% allocation for viable routes
                 if (percentage > 0 && percentage < 500) {
                     percentage = 500;
                 }
-                
+
                 optimizedRoutes[i].percentage = percentage;
-                optimizedRoutes[i].expectedOutput = 
-                    (optimizedRoutes[i].expectedOutput * percentage) / 10000;
+                optimizedRoutes[i].expectedOutput = (optimizedRoutes[i].expectedOutput * percentage) / 10000;
             }
         }
 
@@ -492,36 +442,28 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     }
 
     // Calculate route score for optimization
-    function _calculateRouteScore(
-        SplitRoute memory route,
-        bool useGasOptimization
-    ) internal pure returns (uint256) {
+    function _calculateRouteScore(SplitRoute memory route, bool useGasOptimization) internal pure returns (uint256) {
         if (route.expectedOutput == 0) return 0;
-        
+
         uint256 outputScore = route.expectedOutput / 1e15; // Normalize
-        uint256 gasScore = useGasOptimization ? 
-            (1e18 / (route.gasEstimate + 1)) / 1e12 : 1000;
-        
+        uint256 gasScore = useGasOptimization ? (1e18 / (route.gasEstimate + 1)) / 1e12 : 1000;
+
         return (outputScore * 70 + gasScore * 30) / 100; // Weighted score
     }
 
     // Calculate price impact for a trade
-    function _calculatePriceImpact(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 amountOut
-    ) internal view returns (uint256) {
-        try IPriceOracle(priceOracle).getPrice(tokenIn, tokenOut) 
-        returns (IPriceOracle.PriceData memory priceData) {
-            
+    function _calculatePriceImpact(address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)
+        internal
+        view
+        returns (uint256)
+    {
+        try IPriceOracle(priceOracle).getPrice(tokenIn, tokenOut) returns (IPriceOracle.PriceData memory priceData) {
             uint256 expectedOutput = (amountIn * priceData.price) / PRECISION;
-            
+
             if (expectedOutput == 0) return 10000; // 100% impact if no price data
-            
-            uint256 impact = expectedOutput > amountOut ? 
-                ((expectedOutput - amountOut) * 10000) / expectedOutput : 0;
-                
+
+            uint256 impact = expectedOutput > amountOut ? ((expectedOutput - amountOut) * 10000) / expectedOutput : 0;
+
             return impact;
         } catch {
             // Fallback: estimate based on liquidity
@@ -531,13 +473,13 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     }
 
     // Encode swap data based on DEX type
-    function _encodeSwapData(
-        string memory dexName,
-        address tokenIn,
-        address tokenOut
-    ) internal pure returns (bytes memory) {
+    function _encodeSwapData(string memory dexName, address tokenIn, address tokenOut)
+        internal
+        pure
+        returns (bytes memory)
+    {
         bytes32 dexHash = keccak256(bytes(dexName));
-        
+
         if (dexHash == keccak256(bytes("hyperswap_v3"))) {
             return abi.encode(uint24(500)); // 0.05% fee tier
         } else if (dexHash == keccak256(bytes("kittenswap_stable"))) {
@@ -581,7 +523,8 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     // Calculate USD volume (simplified)
     function _calculateVolumeUSD(address token, uint256 amount) internal pure returns (uint256) {
         // Simplified calculation - in production would use proper price feeds
-        if (token == 0x1111111111111111111111111111111111111111) { // USDC
+        if (token == 0x1111111111111111111111111111111111111111) {
+            // USDC
             return amount / 1e6; // USDC has 6 decimals
         }
         return (amount * 2) / 1e18; // Assume $2 per token for others
@@ -589,7 +532,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
 
     // Convert optimized route from external optimizer
     function _convertOptimizedRoute(
-        IRouteOptimizer.OptimizedRoute memory /*optimized*/,
+        IRouteOptimizer.OptimizedRoute memory, /*optimized*/
         SplitRoute[] memory originalRoutes
     ) internal pure returns (SplitRoute[] memory) {
         // Implementation would convert the optimized route format
@@ -601,14 +544,14 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     function addDEXAdapter(string calldata name, address adapter) external onlyOwner {
         require(adapter != address(0), "SOR: Invalid adapter");
         require(bytes(name).length > 0, "SOR: Invalid name");
-        
+
         dexAdapters[name] = adapter;
         emit AdapterAdded(name, adapter);
     }
 
     function removeDEXAdapter(string calldata name) external onlyOwner {
         require(dexAdapters[name] != address(0), "SOR: Adapter not found");
-        
+
         //address adapter = dexAdapters[name];
         delete dexAdapters[name];
         emit AdapterRemoved(name);
@@ -625,7 +568,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     function _addSupportedToken(address token, uint256 decimals) internal {
         require(token != address(0), "SOR: Invalid token");
         require(decimals > 0 && decimals <= 18, "SOR: Invalid decimals");
-        
+
         supportedTokens[token] = true;
         tokenDecimals[token] = decimals;
         emit TokenAdded(token, decimals);
@@ -633,7 +576,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
 
     function removeSupportedToken(address token) external onlyOwner {
         require(supportedTokens[token], "SOR: Token not supported");
-        
+
         supportedTokens[token] = false;
         delete tokenDecimals[token];
         emit TokenRemoved(token);
@@ -641,7 +584,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
 
     function updatePlatformFee(uint256 newFee) external onlyOwner {
         require(newFee <= 100, "SOR: Fee too high"); // Max 1%
-        
+
         uint256 oldFee = platformFee;
         platformFee = newFee;
         emit PlatformFeeUpdated(oldFee, newFee);
@@ -666,11 +609,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         routeOptimizer = optimizer;
     }
 
-    function setPairLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 liquidity
-    ) external onlyOwner {
+    function setPairLiquidity(address tokenA, address tokenB, uint256 liquidity) external onlyOwner {
         pairLiquidity[tokenA][tokenB] = liquidity;
         pairLiquidity[tokenB][tokenA] = liquidity;
         emit LiquidityUpdated(tokenA, tokenB, liquidity);
@@ -695,20 +634,18 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     }
 
     // View functions
-    function getRouterStats() external view returns (
-        uint256 swapsExecuted,
-        uint256 volumeUSD,
-        uint256 gasSaved,
-        uint256 supportedTokenCount,
-        uint256 adapterCount
-    ) {
-        return (
-            totalSwapsExecuted,
-            totalVolumeUSD,
-            totalGasSaved,
-            _getSupportedTokenCount(),
-            _getAdapterCount()
-        );
+    function getRouterStats()
+        external
+        view
+        returns (
+            uint256 swapsExecuted,
+            uint256 volumeUSD,
+            uint256 gasSaved,
+            uint256 supportedTokenCount,
+            uint256 adapterCount
+        )
+    {
+        return (totalSwapsExecuted, totalVolumeUSD, totalGasSaved, _getSupportedTokenCount(), _getAdapterCount());
     }
 
     function _getSupportedTokenCount() internal pure returns (uint256 count) {
@@ -728,6 +665,5 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     // Events for failed routes
     event RouteExecutionFailed(uint256 indexed routeIndex, string reason);
 
-    receive() external payable {}
-
+    receive() external payable { }
 }

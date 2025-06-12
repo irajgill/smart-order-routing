@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-
 interface ILaminarRouter {
     struct RouteInfo {
         address[] path;
@@ -20,11 +19,7 @@ interface ILaminarRouter {
     }
 
     event OptimalRouteFound(
-        address indexed tokenIn,
-        address indexed tokenOut,
-        uint256 amountIn,
-        uint256 expectedOutput,
-        uint256 sources
+        address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 expectedOutput, uint256 sources
     );
 
     event CrossLayerSwap(
@@ -36,11 +31,10 @@ interface ILaminarRouter {
         string toLayer
     );
 
-    function getOptimalSwap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn
-    ) external view returns (uint256 amountOut, bytes memory routeData);
+    function getOptimalSwap(address tokenIn, address tokenOut, uint256 amountIn)
+        external
+        view
+        returns (uint256 amountOut, bytes memory routeData);
 
     function executeSwap(
         address tokenIn,
@@ -50,27 +44,25 @@ interface ILaminarRouter {
         bytes calldata routeData
     ) external returns (uint256 amountOut);
 
-    function getAggregatedLiquidity(
-        address tokenA,
-        address tokenB
-    ) external view returns (uint256 totalLiquidity, address[] memory sources);
+    function getAggregatedLiquidity(address tokenA, address tokenB)
+        external
+        view
+        returns (uint256 totalLiquidity, address[] memory sources);
 
-    function getCrossLayerRoutes(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn
-    ) external view returns (RouteInfo[] memory routes);
+    function getCrossLayerRoutes(address tokenIn, address tokenOut, uint256 amountIn)
+        external
+        view
+        returns (RouteInfo[] memory routes);
 
-    function getAllLiquiditySources(
-        address tokenA,
-        address tokenB
-    ) external view returns (LiquiditySource[] memory sources);
+    function getAllLiquiditySources(address tokenA, address tokenB)
+        external
+        view
+        returns (LiquiditySource[] memory sources);
 
-    function estimateCrossLayerGas(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn
-    ) external view returns (uint256 gasEstimate);
+    function estimateCrossLayerGas(address tokenIn, address tokenOut, uint256 amountIn)
+        external
+        view
+        returns (uint256 gasEstimate);
 }
 
 interface ILaminarHyperCoreAdapter {
@@ -83,43 +75,28 @@ interface ILaminarHyperCoreAdapter {
     }
 
     event HyperCoreSwapExecuted(
-        address indexed tokenIn,
-        address indexed tokenOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        uint256 executionPrice
+        address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut, uint256 executionPrice
     );
 
-    function getHyperCorePrice(
-        address tokenA,
-        address tokenB,
-        uint256 amount
-    ) external view returns (uint256 price, uint256 liquidity);
+    function getHyperCorePrice(address tokenA, address tokenB, uint256 amount)
+        external
+        view
+        returns (uint256 price, uint256 liquidity);
 
-    function executeHyperCoreSwap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 minAmountOut
-    ) external returns (uint256 amountOut);
+    function executeHyperCoreSwap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)
+        external
+        returns (uint256 amountOut);
 
-    function getOrderbook(
-        address tokenA,
-        address tokenB
-    ) external view returns (HyperCoreOrderbook memory orderbook);
+    function getOrderbook(address tokenA, address tokenB) external view returns (HyperCoreOrderbook memory orderbook);
 
-    function estimateSlippage(
-        address tokenA,
-        address tokenB,
-        uint256 amountIn
-    ) external view returns (uint256 slippage);
+    function estimateSlippage(address tokenA, address tokenB, uint256 amountIn)
+        external
+        view
+        returns (uint256 slippage);
 
     function isHyperCoreToken(address token) external view returns (bool);
 
-    function getHyperCoreLiquidity(
-        address tokenA,
-        address tokenB
-    ) external view returns (uint256 totalLiquidity);
+    function getHyperCoreLiquidity(address tokenA, address tokenB) external view returns (uint256 totalLiquidity);
 }
 
 interface ILaminarBridge {
@@ -153,38 +130,25 @@ interface ILaminarBridge {
     );
 
     event BridgeCompleted(
-        bytes32 indexed bridgeId,
-        address indexed token,
-        uint256 amount,
-        address indexed to,
-        uint256 fee
+        bytes32 indexed bridgeId, address indexed token, uint256 amount, address indexed to, uint256 fee
     );
 
-    event BridgeFailed(
-        bytes32 indexed bridgeId,
-        string reason
-    );
+    event BridgeFailed(bytes32 indexed bridgeId, string reason);
 
-    function bridgeToHyperCore(
-        address token,
-        uint256 amount,
-        bytes calldata swapData
-    ) external returns (bytes32 bridgeId);
+    function bridgeToHyperCore(address token, uint256 amount, bytes calldata swapData)
+        external
+        returns (bytes32 bridgeId);
 
-    function bridgeFromHyperCore(
-        address token,
-        uint256 amount,
-        address recipient
-    ) external returns (uint256 amountReceived);
+    function bridgeFromHyperCore(address token, uint256 amount, address recipient)
+        external
+        returns (uint256 amountReceived);
 
     function getBridgeTransaction(bytes32 bridgeId) external view returns (BridgeTransaction memory);
 
-    function estimateBridgeFee(
-        address token,
-        uint256 amount,
-        string calldata fromLayer,
-        string calldata toLayer
-    ) external view returns (uint256 fee);
+    function estimateBridgeFee(address token, uint256 amount, string calldata fromLayer, string calldata toLayer)
+        external
+        view
+        returns (uint256 fee);
 
     function getBridgeStatus(bytes32 bridgeId) external view returns (BridgeStatus);
 
@@ -213,18 +177,12 @@ interface ILaminarAggregator {
         uint256 maxSources
     ) external returns (AggregationResult memory result);
 
-    function getAggregationQuote(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 maxSources
-    ) external view returns (AggregationResult memory result);
+    function getAggregationQuote(address tokenIn, address tokenOut, uint256 amountIn, uint256 maxSources)
+        external
+        view
+        returns (AggregationResult memory result);
 
-    function addLiquiditySource(
-        address source,
-        string calldata name,
-        uint256 weight
-    ) external;
+    function addLiquiditySource(address source, string calldata name, uint256 weight) external;
 
     function removeLiquiditySource(address source) external;
 
@@ -232,10 +190,8 @@ interface ILaminarAggregator {
 
     function getActiveSources() external view returns (address[] memory sources);
 
-    function getSourceInfo(address source) external view returns (
-        string memory name,
-        uint256 weight,
-        bool active,
-        uint256 totalVolume
-    );
+    function getSourceInfo(address source)
+        external
+        view
+        returns (string memory name, uint256 weight, bool active, uint256 totalVolume);
 }

@@ -33,12 +33,9 @@ library SafetyChecks {
         if (deadline > block.timestamp + MAX_DEADLINE) revert DeadlineExpired();
     }
 
-    function validateSlippage(
-        uint256 expectedOutput,
-        uint256 minOutput
-    ) internal pure returns (bool) {
+    function validateSlippage(uint256 expectedOutput, uint256 minOutput) internal pure returns (bool) {
         if (expectedOutput == 0) return false;
-        
+
         uint256 slippage = ((expectedOutput - minOutput) * 10000) / expectedOutput;
         return slippage <= MAX_SLIPPAGE;
     }
@@ -51,25 +48,20 @@ library SafetyChecks {
         return liquidity >= MIN_LIQUIDITY;
     }
 
-    function validateRouteComplexity(
-        uint256 hops,
-        uint256 splits,
-        uint256 maxHops,
-        uint256 maxSplits
-    ) internal pure returns (bool) {
+    function validateRouteComplexity(uint256 hops, uint256 splits, uint256 maxHops, uint256 maxSplits)
+        internal
+        pure
+        returns (bool)
+    {
         return hops <= maxHops && splits <= maxSplits && hops > 0 && splits > 0;
     }
 
-    function validateGasParameters(
-        uint256 gasPrice,
-        uint256 gasLimit,
-        uint256 maxGasPrice,
-        uint256 maxGasLimit
-    ) internal pure returns (bool) {
-        return gasPrice <= maxGasPrice && 
-               gasLimit <= maxGasLimit && 
-               gasPrice > 0 && 
-               gasLimit > 21000; // Minimum gas for transaction
+    function validateGasParameters(uint256 gasPrice, uint256 gasLimit, uint256 maxGasPrice, uint256 maxGasLimit)
+        internal
+        pure
+        returns (bool)
+    {
+        return gasPrice <= maxGasPrice && gasLimit <= maxGasLimit && gasPrice > 0 && gasLimit > 21000; // Minimum gas for transaction
     }
 
     function checkReentrancy(mapping(address => bool) storage reentrancyGuard) internal {
@@ -81,55 +73,51 @@ library SafetyChecks {
         reentrancyGuard[msg.sender] = false;
     }
 
-    function validateTokenBalance(
-        address token,
-        address account,
-        uint256 requiredAmount
-    ) internal view returns (bool) {
+    function validateTokenBalance(address token, address account, uint256 requiredAmount)
+        internal
+        view
+        returns (bool)
+    {
         if (token == address(0)) {
             return account.balance >= requiredAmount;
         } else {
             // For ERC20 tokens
-            (bool success, bytes memory data) = token.staticcall(
-                abi.encodeWithSignature("balanceOf(address)", account)
-            );
-            
+            (bool success, bytes memory data) = token.staticcall(abi.encodeWithSignature("balanceOf(address)", account));
+
             if (!success || data.length < 32) return false;
-            
+
             uint256 balance = abi.decode(data, (uint256));
             return balance >= requiredAmount;
         }
     }
 
-    function validateTokenAllowance(
-        address token,
-        address owner,
-        address spender,
-        uint256 requiredAmount
-    ) internal view returns (bool) {
+    function validateTokenAllowance(address token, address owner, address spender, uint256 requiredAmount)
+        internal
+        view
+        returns (bool)
+    {
         if (token == address(0)) return true; // Native token doesn't need allowance
-        
-        (bool success, bytes memory data) = token.staticcall(
-            abi.encodeWithSignature("allowance(address,address)", owner, spender)
-        );
-        
+
+        (bool success, bytes memory data) =
+            token.staticcall(abi.encodeWithSignature("allowance(address,address)", owner, spender));
+
         if (!success || data.length < 32) return false;
-        
+
         uint256 allowance = abi.decode(data, (uint256));
         return allowance >= requiredAmount;
     }
 
-    function calculateMaxSlippage(
-        uint256 amountIn,
-        uint256 liquidity,
-        uint256 baseSlippage
-    ) internal pure returns (uint256) {
+    function calculateMaxSlippage(uint256 amountIn, uint256 liquidity, uint256 baseSlippage)
+        internal
+        pure
+        returns (uint256)
+    {
         if (liquidity == 0) return MAX_SLIPPAGE;
-        
+
         // Adjust slippage based on trade size relative to liquidity
         uint256 tradeRatio = (amountIn * 10000) / liquidity;
         uint256 adjustedSlippage = baseSlippage + (tradeRatio / 10);
-        
+
         return adjustedSlippage > MAX_SLIPPAGE ? MAX_SLIPPAGE : adjustedSlippage;
     }
 
@@ -144,5 +132,4 @@ library SafetyChecks {
     function validateRecipient(address recipient) internal view returns (bool) {
         return recipient != address(0) && recipient != address(this);
     }
-    
 }

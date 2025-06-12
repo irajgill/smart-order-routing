@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SORRouter} from "../contracts/core/SORRouter.sol";
-import {SORManager} from "../contracts/core/SORManager.sol";
-import {MockPriceOracle} from "../tests/contracts/mocks/MockPriceOracle.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { SORRouter } from "../contracts/core/SORRouter.sol";
+import { SORManager } from "../contracts/core/SORManager.sol";
+import { MockPriceOracle } from "../tests/contracts/mocks/MockPriceOracle.sol";
 
 contract MigrateScript is Script {
-    function setUp() public {}
+    function setUp() public { }
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        
+
         // Get existing contract addresses
         address sorRouterAddress = vm.envAddress("SOR_ROUTER_ADDRESS");
         address sorManagerAddress = vm.envAddress("SOR_MANAGER_ADDRESS");
         address priceOracleAddress = vm.envAddress("PRICE_ORACLE_ADDRESS");
-        
+
         console.log("Starting migration...");
         console.log("SOR Router:", sorRouterAddress);
         console.log("SOR Manager:", sorManagerAddress);
@@ -33,7 +33,7 @@ contract MigrateScript is Script {
         console.log("Updating platform fee...");
         uint256 currentFee = sorRouter.platformFee();
         uint256 targetFee = 25; // 0.25%
-        
+
         if (currentFee != targetFee) {
             sorRouter.updatePlatformFee(targetFee);
             console.log("Platform fee updated from", currentFee, "to", targetFee);
@@ -43,13 +43,13 @@ contract MigrateScript is Script {
         console.log("Adding new ecosystem tokens...");
         address newToken1 = 0x4444444444444444444444444444444444444444; // HYPE-LP
         address newToken2 = 0x5555555555555555555555555555555555555555; // KITTEN
-        
+
         if (!sorRouter.supportedTokens(newToken1)) {
             sorRouter.addSupportedToken(newToken1);
             sorManager.addSupportedToken(newToken1, 18, "HYPE-LP", "HYPE LP Token", address(0));
             console.log("Added HYPE-LP token support");
         }
-        
+
         if (!sorRouter.supportedTokens(newToken2)) {
             sorRouter.addSupportedToken(newToken2);
             sorManager.addSupportedToken(newToken2, 18, "KITTEN", "KittenSwap Token", address(0));
@@ -61,7 +61,7 @@ contract MigrateScript is Script {
         address hypeToken = 0x2222222222222222222222222222222222222222;
         address usdcToken = 0x1111111111111111111111111111111111111111;
         address wethToken = 0x3333333333333333333333333333333333333333;
-        
+
         priceOracle.updatePrice(hypeToken, usdcToken, 2.75 ether); // Updated HYPE price
         priceOracle.updatePrice(wethToken, usdcToken, 2100 ether); // Updated ETH price
         console.log("Price oracle updated");
@@ -78,7 +78,7 @@ contract MigrateScript is Script {
             sorManager.updateMaxSplits(7);
             console.log("Max splits updated to 7");
         }
-        
+
         if (sorManager.maxSlippageBps() != 500) {
             sorManager.updateMaxSlippageBps(500);
             console.log("Max slippage updated to 5%");

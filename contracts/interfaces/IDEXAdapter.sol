@@ -11,13 +11,9 @@ interface IDEXAdapter {
      * swapData Additional data for the swap (path, fees, etc.)
      * @return amountOut Actual amount of output tokens received
      */
-    function swap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 minAmountOut,
-        bytes calldata swapData
-    ) external returns (uint256 amountOut);
+    function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut, bytes calldata swapData)
+        external
+        returns (uint256 amountOut);
 
     /**
      * Get a quote for a potential swap
@@ -28,12 +24,9 @@ interface IDEXAdapter {
      * @return amountOut Expected output amount
      * @return gasEstimate Estimated gas cost for the swap
      */
-    function getQuote(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        bytes calldata swapData
-    ) external returns (uint256 amountOut, uint256 gasEstimate);
+    function getQuote(address tokenIn, address tokenOut, uint256 amountIn, bytes calldata swapData)
+        external
+        returns (uint256 amountOut, uint256 gasEstimate);
 
     /**
      * Get the name of the DEX
@@ -46,5 +39,4 @@ interface IDEXAdapter {
      * @return fees Array of supported fee tiers in basis points
      */
     function getSupportedFeeTiers() external view returns (uint256[] memory fees);
-    
 }

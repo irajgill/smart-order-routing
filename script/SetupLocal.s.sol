@@ -1,21 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SORRouter} from "../contracts/core/SORRouter.sol";
-import {MockERC20} from "../tests/contracts/mocks/MockERC20.sol";
-import {MockDEXRouter} from "../tests/contracts/mocks/MockDEXRouter.sol";
-import {MockPriceOracle} from "../tests/contracts/mocks/MockPriceOracle.sol";
-import {HyperSwapV2Adapter} from "../contracts/adapters/HyperSwapV2Adapter.sol";
-
+import { Script, console } from "forge-std/Script.sol";
+import { SORRouter } from "../contracts/core/SORRouter.sol";
+import { MockERC20 } from "../tests/contracts/mocks/MockERC20.sol";
+import { MockDEXRouter } from "../tests/contracts/mocks/MockDEXRouter.sol";
+import { MockPriceOracle } from "../tests/contracts/mocks/MockPriceOracle.sol";
+import { HyperSwapV2Adapter } from "../contracts/adapters/HyperSwapV2Adapter.sol";
 
 contract SetupLocalScript is Script {
-    function setUp() public {}
+    function setUp() public { }
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
-        
+
         console.log("Setting up local Hyperliquid development environment...");
         console.log("Deployer:", deployer);
 
@@ -56,12 +55,12 @@ contract SetupLocalScript is Script {
         uint256 mintAmount = 1000000 ether;
         tokenA.mint(deployer, mintAmount);
         tokenB.mint(deployer, mintAmount);
-        tokenC.mint(deployer, 1000000 * 10**6); // 6 decimals
+        tokenC.mint(deployer, 1000000 * 10 ** 6); // 6 decimals
 
         // Mint to DEX router for liquidity
         tokenA.mint(address(mockDEXRouter), mintAmount);
         tokenB.mint(address(mockDEXRouter), mintAmount);
-        tokenC.mint(address(mockDEXRouter), 1000000 * 10**6);
+        tokenC.mint(address(mockDEXRouter), 1000000 * 10 ** 6);
 
         // Set up prices
         priceOracle.updatePrice(address(tokenA), address(tokenB), 1 ether);

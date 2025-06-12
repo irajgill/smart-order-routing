@@ -39,11 +39,7 @@ interface ISOR {
     );
 
     event RouteOptimized(
-        address indexed tokenIn,
-        address indexed tokenOut,
-        uint256 amountIn,
-        uint256 expectedSavings,
-        uint256 routeCount
+        address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 expectedSavings, uint256 routeCount
     );
 
     /**
@@ -52,7 +48,7 @@ interface ISOR {
      * @return amountOut The amount of output tokens received
      */
     function executeOptimalSwap(SwapParams calldata params) external payable returns (uint256 amountOut);
-    
+
     /**
      * Get quote for potential swap without execution
      * tokenIn Input token address
@@ -62,15 +58,9 @@ interface ISOR {
      * @return gasEstimate Estimated gas cost
      * @return routes Array of split routes
      */
-    function getSwapQuote(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn
-    ) external returns (
-        uint256 amountOut,
-        uint256 gasEstimate,
-        SplitRoute[] memory routes
-    );
+    function getSwapQuote(address tokenIn, address tokenOut, uint256 amountIn)
+        external
+        returns (uint256 amountOut, uint256 gasEstimate, SplitRoute[] memory routes);
 
     /**
      *  Check if a token is supported by the router
