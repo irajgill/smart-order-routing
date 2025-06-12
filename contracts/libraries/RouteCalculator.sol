@@ -23,7 +23,7 @@ library RouteCalculator {
 
     function calculateOptimalRoute(
         RouteParams memory params,
-        address[] memory /*availableAdapters */
+        address[] memory availableAdapters
     ) internal pure returns (RouteResult memory) {
         RouteResult memory result;
         result.path = new address[](2);
@@ -108,7 +108,7 @@ library RouteCalculator {
     function findBestSplitPercentages(
         uint256[] memory routeOutputs,
         uint256[] memory routeGasEstimates,
-        uint256 /*totalAmount*/
+        uint256 totalAmount
     ) internal pure returns (uint256[] memory percentages) {
         uint256 routeCount = routeOutputs.length;
         percentages = new uint256[](routeCount);

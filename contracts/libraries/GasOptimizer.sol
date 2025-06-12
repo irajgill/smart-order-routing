@@ -124,4 +124,5 @@ library GasOptimizer {
         
         return (currentGasPrice * totalMultiplier) / 100;
     }
+    
 }

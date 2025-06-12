@@ -6,9 +6,8 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IDEXAdapter.sol";
 
-/**Centralized management system for SOR ecosystem
- * Handles adapter registration, token support, and global configuration
- */
+// Centralized management system for SOR ecosystem
+// Handles adapter registration, token support, and global configuration
 contract SORManager is Ownable, Pausable, ReentrancyGuard {
     // Adapter management
     mapping(string => address) public dexAdapters;
@@ -462,5 +461,6 @@ contract SORManager is Ownable, Pausable, ReentrancyGuard {
         uint256 enabledCount = 0;
         
     }
+
 
 }

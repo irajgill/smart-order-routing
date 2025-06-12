@@ -206,4 +206,5 @@ interface IHyperSwapV3Pool {
     ) external;
 
     function increaseObservationCardinalityNext(uint16 observationCardinalityNext) external;
+    
 }

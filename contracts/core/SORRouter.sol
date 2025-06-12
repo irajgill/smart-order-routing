@@ -13,25 +13,21 @@ import "../libraries/RouteCalculator.sol";
 import "../libraries/GasOptimizer.sol";
 import "../libraries/SafetyChecks.sol";
 
-/**
- * @title SORRouter
- * @dev Advanced Smart Order Router for Hyperliquid ecosystem
- * Aggregates liquidity across HyperSwap V2/V3, KittenSwap, and Laminar
- * Implements sophisticated routing algorithms for optimal price execution
- */
+
+// Advanced Smart Order Router for Hyperliquid ecosystem
+// Aggregates liquidity across HyperSwap V2/V3, KittenSwap, and Laminar
+// Implements sophisticated routing algorithms for optimal price execution
 contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using RouteCalculator for RouteCalculator.RouteParams;
     using GasOptimizer for GasOptimizer.GasParams;
 
-    // Constants
     uint256 public constant MAX_SPLITS = 7;
     uint256 public constant MAX_SLIPPAGE = 500; // 5%
     uint256 public constant ROUTE_GAS_LIMIT = 1000000;
     uint256 public constant PRECISION = 1e18;
     uint256 public constant MAX_ADAPTERS = 10;
 
-    // State variables
     mapping(string => address) public dexAdapters;
     mapping(address => bool) public override supportedTokens;
     mapping(address => mapping(address => uint256)) public pairLiquidity;
@@ -45,12 +41,10 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     uint256 public override maxSlippageBps = 500; // 5%
     bool public emergencyPaused = false;
     
-    // Statistics
     uint256 public totalSwapsExecuted;
     uint256 public totalVolumeUSD;
     uint256 public totalGasSaved;
 
-    // Events
     event AdapterAdded(string indexed name, address indexed adapter);
     event AdapterRemoved(string indexed name);
     event TokenAdded(address indexed token, uint256 decimals);
@@ -93,10 +87,8 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         _addSupportedToken(0x2222222222222222222222222222222222222222, 18);
     }
 
-    /**
-     * @dev Execute optimal swap across multiple DEX protocols
-     * Implements advanced routing with split execution and gas optimization
-     */
+    //Execute optimal swap across multiple DEX protocols
+    //Implements advanced routing with split execution and gas optimization
     function executeOptimalSwap(
         SwapParams calldata params
     ) 
@@ -204,9 +196,8 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return userAmountOut;
     }
 
-    /**
-     * @dev Get comprehensive swap quote with multiple route options
-     */
+    
+    //Get comprehensive swap quote with multiple route options
     function getSwapQuote(
         address tokenIn,
         address tokenOut,
@@ -236,9 +227,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         amountOut = amountOut - feeAmount;
     }
 
-    /**
-     * @dev Calculate optimal routes using advanced pathfinding algorithms
-     */
+    //Calculate optimal routes using advanced pathfinding algorithms
     function _calculateOptimalRoutes(
         address tokenIn,
         address tokenOut,
@@ -281,9 +270,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return _optimizeRouteDistribution(allRoutes, routeCount, amountIn, useGasOptimization);
     }
 
-    /**
-     * @dev Get route information from a specific DEX adapter
-     */
+    //Get route information from a specific DEX adapter
     function _getRouteFromAdapter(
         address adapter,
         address tokenIn,
@@ -318,9 +305,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         }
     }
 
-    /**
-     * @dev Execute multiple routes with proper error handling
-     */
+    //Execute multiple routes with proper error handling
     function _executeSplitRoutes(SplitRoute[] memory routes) internal returns (uint256 totalAmountOut) {
         for (uint256 i = 0; i < routes.length; i++) {
             if (routes[i].steps.length > 0) {
@@ -337,17 +322,13 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         }
     }
 
-    /**
-     * @dev External function for route execution (for try-catch)
-     */
+    //External function for route execution (for try-catch)
     function _executeRouteExternal(SplitRoute memory route) external returns (uint256 amountOut) {
         require(msg.sender == address(this), "SOR: Internal function");
         return _executeRoute(route);
     }
 
-    /**
-     * @dev Execute a single route through specified steps
-     */
+    //Execute a single route through specified steps
     function _executeRoute(SplitRoute memory route) internal returns (uint256 amountOut) {
         uint256 currentAmount = 0;
         
@@ -387,9 +368,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return currentAmount;
     }
 
-    /**
-     * @dev Optimize route distribution using advanced algorithms
-     */
+    //Optimize route distribution using advanced algorithms
     function _optimizeRouteDistribution(
         SplitRoute[] memory routes,
         uint256 routeCount,
@@ -415,9 +394,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return _simpleRouteOptimization(routes, routeCount, useGasOptimization);
     }
 
-    /**
-     * @dev Use external route optimizer for advanced optimization
-     */
+    // Use external route optimizer for advanced optimization
     function _useRouteOptimizer(
         SplitRoute[] memory routes,
         uint256 routeCount,
@@ -457,9 +434,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         }
     }
 
-    /**
-     * @dev Simple route optimization fallback
-     */
+    // Simple route optimization fallback
     function _simpleRouteOptimization(
         SplitRoute[] memory routes,
         uint256 routeCount,
@@ -516,9 +491,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return finalRoutes;
     }
 
-    /**
-     * @dev Calculate route score for optimization
-     */
+    // Calculate route score for optimization
     function _calculateRouteScore(
         SplitRoute memory route,
         bool useGasOptimization
@@ -532,9 +505,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return (outputScore * 70 + gasScore * 30) / 100; // Weighted score
     }
 
-    /**
-     * @dev Calculate price impact for a trade
-     */
+    // Calculate price impact for a trade
     function _calculatePriceImpact(
         address tokenIn,
         address tokenOut,
@@ -559,9 +530,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         }
     }
 
-    /**
-     * @dev Encode swap data based on DEX type
-     */
+    // Encode swap data based on DEX type
     function _encodeSwapData(
         string memory dexName,
         address tokenIn,
@@ -590,9 +559,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         }
     }
 
-    /**
-     * @dev Get list of available DEX adapters
-     */
+    // Get list of available DEX adapters
     function _getAvailableAdapters() internal pure returns (string[] memory) {
         string[] memory adapters = new string[](6);
         adapters[0] = "hyperswap_v2";
@@ -604,18 +571,14 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return adapters;
     }
 
-    /**
-     * @dev Calculate gas savings from optimization
-     */
+    // Calculate gas savings from optimization
     function _calculateGasSavings(uint256 gasUsed, uint256 routeCount) internal pure returns (uint256) {
         uint256 baselineGas = 150000; // Single DEX swap
         uint256 expectedGas = baselineGas * routeCount;
         return expectedGas > gasUsed ? expectedGas - gasUsed : 0;
     }
 
-    /**
-     * @dev Calculate USD volume (simplified)
-     */
+    // Calculate USD volume (simplified)
     function _calculateVolumeUSD(address token, uint256 amount) internal pure returns (uint256) {
         // Simplified calculation - in production would use proper price feeds
         if (token == 0x1111111111111111111111111111111111111111) { // USDC
@@ -624,9 +587,7 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
         return (amount * 2) / 1e18; // Assume $2 per token for others
     }
 
-    /**
-     * @dev Convert optimized route from external optimizer
-     */
+    // Convert optimized route from external optimizer
     function _convertOptimizedRoute(
         IRouteOptimizer.OptimizedRoute memory /*optimized*/,
         SplitRoute[] memory originalRoutes
@@ -768,4 +729,5 @@ contract SORRouter is ISOR, ReentrancyGuard, Ownable {
     event RouteExecutionFailed(uint256 indexed routeIndex, string reason);
 
     receive() external payable {}
+
 }

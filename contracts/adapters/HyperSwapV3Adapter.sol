@@ -240,4 +240,5 @@ contract HyperSwapV3Adapter is IDEXAdapter {
         
         return priceImpact > 10000 ? 10000 : priceImpact;
     }
+    
 }

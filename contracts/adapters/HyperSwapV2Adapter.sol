@@ -140,7 +140,7 @@ contract HyperSwapV2Adapter is IDEXAdapter {
         
         if (reserveIn == 0) return 10000;
         
-        // Price impact = (amountIn / reserveIn) * 10000
+        //Price impact = (amountIn / reserveIn) * 10000
         priceImpact = (amountIn * 10000) / reserveIn;
         return priceImpact > 10000 ? 10000 : priceImpact;
     }

@@ -48,16 +48,16 @@ interface ISOR {
 
     /**
      * Execute optimal swap across multiple DEX protocols
-     *  Swap parameters including tokens, amounts, and preferences
+     * Swap parameters including tokens, amounts, and preferences
      * @return amountOut The amount of output tokens received
      */
     function executeOptimalSwap(SwapParams calldata params) external payable returns (uint256 amountOut);
     
     /**
      * Get quote for potential swap without execution
-     * @param tokenIn Input token address
-     * @param tokenOut Output token address
-     * @param amountIn Amount of input tokens
+     * tokenIn Input token address
+     * tokenOut Output token address
+     * amountIn Amount of input tokens
      * @return amountOut Expected output amount
      * @return gasEstimate Estimated gas cost
      * @return routes Array of split routes
@@ -74,7 +74,7 @@ interface ISOR {
 
     /**
      *  Check if a token is supported by the router
-     * @param token Token address to check
+     * token Token address to check
      * @return supported True if token is supported
      */
     function supportedTokens(address token) external view returns (bool supported);

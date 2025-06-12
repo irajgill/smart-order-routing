@@ -35,10 +35,11 @@ contract HyperSwapV2AdapterTest is Test {
             tokenA.approve(address(adapter), type(uint256).max);
             vm.stopPrank();
         } catch {
-            // Don't skip the test, just mark adapter as null
+            // Don't skip tests if adapter deployment fails
             adapter = HyperSwapV2Adapter(address(0));
             console.log("HyperSwapV2Adapter deployment failed - tests will handle gracefully");
         }
+        
     }
 
     function testGetQuote() public {

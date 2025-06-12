@@ -144,4 +144,5 @@ library SafetyChecks {
     function validateRecipient(address recipient) internal view returns (bool) {
         return recipient != address(0) && recipient != address(this);
     }
+    
 }

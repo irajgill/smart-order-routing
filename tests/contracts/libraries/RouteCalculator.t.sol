@@ -74,5 +74,4 @@ contract RouteCalculatorTest is Test {
         
         assertLe(totalPercentage, 10000, "Total percentage should not exceed 100%");
     }
-
 }

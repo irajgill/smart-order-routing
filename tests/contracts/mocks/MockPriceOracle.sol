@@ -69,4 +69,5 @@ contract MockPriceOracle is IPriceOracle {
         lowerBound = (price * 95) / 100; // 5% lower bound
         upperBound = (price * 105) / 100; // 5% upper bound
     }
+    
 }

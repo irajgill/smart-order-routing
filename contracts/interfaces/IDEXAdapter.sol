@@ -46,4 +46,5 @@ interface IDEXAdapter {
      * @return fees Array of supported fee tiers in basis points
      */
     function getSupportedFeeTiers() external view returns (uint256[] memory fees);
+    
 }

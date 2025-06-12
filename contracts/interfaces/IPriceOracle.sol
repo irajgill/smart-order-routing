@@ -27,9 +27,9 @@ interface IPriceOracle {
     
     /**
      *Get time-weighted average price over a period
-     * @param tokenA First token address
-     * @param tokenB Second token address
-     * @param period Time period in seconds
+     * tokenA First token address
+     * tokenB Second token address
+     * period Time period in seconds
      * @return price TWAP price with 18 decimals
      */
     function getTWAP(
@@ -40,9 +40,9 @@ interface IPriceOracle {
     
     /**
      * date price data (restricted to authorized sources)
-     * @param tokenA First token address
-     * @param tokenB Second token address
-     * @param price New price with 18 decimals
+     * tokenA First token address
+     * tokenB Second token address
+     * price New price with 18 decimals
      */
     function updatePrice(
         address tokenA,
@@ -52,24 +52,24 @@ interface IPriceOracle {
 
     /**
      * Check if price data is valid and recent
-     * @param tokenA First token address
-     * @param tokenB Second token address
+     * tokenA First token address
+     * tokenB Second token address
      * @return valid True if price is valid
      */
     function isValidPrice(address tokenA, address tokenB) external view returns (bool valid);
     
     /**
      * Get the timestamp of the last price update
-     * @param tokenA First token address
-     * @param tokenB Second token address
+     * tokenA First token address
+     * tokenB Second token address
      * @return timestamp Last update timestamp
      */
     function getLastUpdateTime(address tokenA, address tokenB) external view returns (uint256 timestamp);
 
     /**
      * Get price with deviation bounds
-     * @param tokenA First token address
-     * @param tokenB Second token address
+     * tokenA First token address
+     * tokenB Second token address
      * @return price Current price
      * @return lowerBound Lower confidence bound
      * @return upperBound Upper confidence bound

@@ -38,7 +38,6 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         string description;
     }
     
-    // Events
     event RouterCreated(
         address indexed router, 
         address indexed creator, 
@@ -76,9 +75,7 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         defaultPriceOracle = _defaultPriceOracle;
     }
     
-    /**
-     * Create a new SOR Router instance
-     */
+    //Create a new SOR Router instance
     function createRouter(
         address priceOracle,
         address feeCollector,
@@ -142,9 +139,7 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         emit RouterCreated(router, msg.sender, priceOracle, routerCount, name);
     }
 
-    /**
-     * Create router with advanced configuration
-     */
+    //Create router with advanced configuration
     function createAdvancedRouter(
         address priceOracle,
         address feeCollector,
@@ -172,9 +167,8 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         
     }
 
-    /**
-     * Deploy router using proxy pattern (for upgradeable routers)
-     */
+    //Deploy router using proxy pattern (for upgradeable routers)
+     
     function _deployProxyRouter(
         address priceOracle,
         address feeCollector
@@ -184,25 +178,21 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         return address(new SORRouter(priceOracle, feeCollector));
     }
 
-    /**
-     * Verify a router (admin function)
-     */
+    //Verify a router (admin function)
+    
     function verifyRouter(address router, bool verified) external onlyOwner validRouter(router) {
         routerInfo[router].verified = verified;
         emit RouterVerified(router, verified);
     }
 
-    /**
-     * Update router volume (called by routers)
-     */
+    //Update router volume (called by routers)
+    
     function updateRouterVolume(address router, uint256 volume) external validRouter(router) {
         require(msg.sender == router, "SORFactory: Only router can update");
         routerInfo[router].totalVolume += volume;
     }
 
-    /**
-     * Get routers created by a specific user
-     */
+    //Get routers created by a specific user
     function getRoutersByCreator(address creator) external view returns (address[] memory) {
         uint256 count = _getUserRouterCount(creator);
         address[] memory userRouters = new address[](count);
@@ -218,9 +208,7 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         return userRouters;
     }
 
-    /**
-     * Get verified routers
-     */
+    //Get verified routers
     function getVerifiedRouters() external view returns (address[] memory) {
         uint256 verifiedCount = 0;
         
@@ -245,9 +233,8 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         return verifiedRouters;
     }
 
-    /**
-     * Get router statistics
-     */
+    //Get router statistics
+    
     function getRouterStats(address router) external view validRouter(router) returns (
         address creator,
         uint256 createdAt,
@@ -267,9 +254,7 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
         );
     }
 
-    /**
-     * Get factory statistics
-     */
+    //Get factory statistics
     function getFactoryStats() external view returns (
         uint256 totalRouters,
         uint256 verifiedRouters,
@@ -357,4 +342,5 @@ contract SORFactory is Ownable, Pausable, ReentrancyGuard {
     }
 
     receive() external payable {}
+
 }
